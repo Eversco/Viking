@@ -54,4 +54,9 @@ public class AnimationControl : MonoBehaviour
 
         
     }
+
+    public void TriggerAttack()
+    {
+        mAnimator.SetTrigger("Chop");
+    }
 }

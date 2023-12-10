@@ -88,24 +88,25 @@ public class Voxel : MonoBehaviour
         {
             for (int z = (((int)playerPosition.z) - generationRadius) / gridSize; z < (((int)playerPosition.z) + generationRadius) / gridSize; z++)
             {
-                Vector3 pos = new Vector3(x * gridSize, 0, z * gridSize);
-                if (!spawnedTiles.ContainsKey(pos) && !IsTileOccupied(pos))
+                int randomIndex = Random.Range(0, groundTiles.Length);
+                GameObject tilePrefab = groundTiles[randomIndex];
+                Vector3 tileSize = tileSizes[tilePrefab];
+                Vector3 pos = new Vector3(x * tileSize.x, 0, z * tileSize.z);
+
+                if (spawnedTiles.ContainsKey(pos) || IsTileOccupied(pos))
                 {
-                    int randomIndex = Random.Range(0, groundTiles.Length);
-                    GameObject tilePrefab = groundTiles[randomIndex];
-                    GameObject obj = Instantiate(tilePrefab, pos, Quaternion.identity);
-
-                    // Set rotation
-                    int randomRotation = Random.Range(1, 4);
-                    float rotationAngle = 90 * randomRotation;
-                    obj.transform.rotation = Quaternion.Euler(0, rotationAngle, 0);
-
-                    spawnedTiles.Add(pos, obj);
-
-                    // Enemy Spawning Logic
-                    SpawnEnemyNearTile(pos, randomIndex);
-                    GenerateConnectiveTiles(pos, obj);
+                    continue;
                 }
+
+                GameObject obj = Instantiate(tilePrefab, pos, Quaternion.identity);
+
+                // Set rotation
+                int randomRotation = Random.Range(1, 4);
+                float rotationAngle = 90 * randomRotation;
+                obj.transform.rotation = Quaternion.Euler(0, rotationAngle, 0);
+
+                spawnedTiles.Add(pos, obj);
+                SpawnEnemyNearTile(pos, randomIndex);
             }
         }
     }
@@ -127,105 +128,12 @@ public class Voxel : MonoBehaviour
         // Adjust the radius and layerMask as needed.
         return Physics.CheckSphere(position, gridSize / 2f, whatIsGround);
     }
-    void GenerateConnectiveTiles(Vector3 islandPosition, GameObject island)
-    {
-        GameObject nearestIsland = FindNearestIsland(islandPosition);
 
-        if (nearestIsland != null && !IsAlreadyConnected(islandPosition, nearestIsland.transform.position))
-        {
-            InstantiateBridge(islandPosition, nearestIsland.transform.position, island);
-            // Add connection to HashSet
-            var connection = new Tuple<Vector3, Vector3>(islandPosition, nearestIsland.transform.position);
-            connections.Add(connection);
-        }
-    }
-
-    GameObject FindNearestIsland(Vector3 position)
-    {
-        GameObject nearestIsland = null;
-        float minDistance = float.MaxValue;
-
-        foreach (var tile in spawnedTiles)
-        {
-            if (Array.IndexOf(connectiveTiles, tile.Value) >= 0)
-            {
-                // Skip if the tile is a connective tile
-                continue;
-            }
-
-            float distance = Vector3.Distance(position, tile.Key);
-            if (distance < minDistance && distance != 0)
-            {
-                minDistance = distance;
-                nearestIsland = tile.Value;
-            }
-        }
-
-        return nearestIsland;
-    }
-
-
-    void InstantiateBridge(Vector3 startPos, Vector3 endPos, GameObject island)
-    {
-        Vector3 direction = (endPos - startPos).normalized;
-        float distance = Vector3.Distance(startPos, endPos);
-
-        GameObject bridgePrefab = connectiveTiles[Random.Range(0, connectiveTiles.Length)];
-        Vector3 bridgeSize = bridgePrefab.transform.localScale;
-
-        // Calculate the number of bridges needed based on the distance and the length of a single bridge piece
-        int numberOfBridges = Mathf.CeilToInt(0.6f * distance / bridgeSize.z); // Assuming the bridge is oriented along the z-axis
-
-        // Adjust the start position so the bridge starts at the edge of the island
-        Vector3 currentPos = startPos + direction * (island.transform.localScale.z * 1.5f);
-
-        // Instantiate bridge pieces end-to-end
-        for (int i = 0; i < numberOfBridges; i++)
-        {
-            // Instantiate the bridge prefab at the current position
-            GameObject bridgePiece = Instantiate(bridgePrefab, currentPos, Quaternion.LookRotation(direction));
-            spawnedTiles.Add(currentPos, bridgePiece);
-
-            // Optionally, adjust the scale of the bridge piece if necessary
-            bridgePiece.transform.localScale = bridgeSize;
-
-            // Update the current position for the next bridge piece
-            currentPos += direction * bridgeSize.z;
-        }
-    }
-
-
-
-    // You can optimize RemoveDistantChunks by creating a list of tiles to remove
-    // and then iterating over that list to remove them. This avoids modifying the
-    // dictionary while iterating over it.
-
-
-    bool IsAlreadyConnected(Vector3 pos1, Vector3 pos2)
-    {
-        // Implement logic to check if two positions are already connected by a bridge
-        // You can use a HashSet, a Dictionary, or any other collection to keep track of connections
-        // For simplicity, the code for this is not shown here
-        // Tuple creates an immutable pair of values, which you can use as a key in a HashSet
-
-        var connection = new Tuple<Vector3, Vector3>(pos1, pos2);
-        var reverseConnection = new Tuple<Vector3, Vector3>(pos2, pos1);
-
-        // Check both directions since connection can be bidirectional
-        if (connections.Contains(connection) || connections.Contains(reverseConnection))
-        {
-            return true;
-        }
-
-        // Default case: if no connection is found, return false
-        return false;
-    }
 
     void RemoveDistantChunks(Vector3 playerPosition)
     {
-        // Iterate through all existing chunks.
-        // If a chunk's distance from the player exceeds the generation radius,
-        // remove or deactivate the chunk.
+        List<Vector3> tilesRemove = new List<Vector3>();
+        List<Vector3> enemiesRemove = new List<Vector3>();
 
         foreach (KeyValuePair<Vector3, GameObject> tile in spawnedTiles)
         {
@@ -233,8 +141,13 @@ public class Voxel : MonoBehaviour
             if (Vector3.Distance(playerPosition, pos) > generationRadius)
             {
                 Destroy(tile.Value);
-                spawnedTiles.Remove(tile.Key);
+                tilesRemove.Add(pos);
             }
+        }
+
+        foreach(Vector3 tile in tilesRemove)
+        {
+            spawnedTiles.Remove(tile);
         }
 
         foreach (KeyValuePair<Vector3, GameObject> enemy in spawnedEnemies)
@@ -243,8 +156,13 @@ public class Voxel : MonoBehaviour
             if (Vector3.Distance(playerPosition, pos) > generationRadius)
             {
                 Destroy(enemy.Value);
-                spawnedTiles.Remove(enemy.Key);
+                enemiesRemove.Add(pos);
             }
+        }
+
+        foreach (Vector3 enemy in enemiesRemove)
+        {
+            spawnedEnemies.Remove(enemy);
         }
     }
 }

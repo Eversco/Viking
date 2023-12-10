@@ -31,7 +31,9 @@ public class Enemy : MonoBehaviour
 
     private Rigidbody rb;
 
-    public enum EnemyState { Patrolling, Chasing }
+    public float distanceToPlayer;
+
+    public enum EnemyState { Patrolling, Chasing, Attacking }
     public EnemyState currentState;
 
     private void Start()
@@ -64,8 +66,18 @@ public class Enemy : MonoBehaviour
             case EnemyState.Chasing:
                 ChasingBehavior();
                 break;
+            case EnemyState.Attacking:
+                Attack();
+                break;
+        }
+
+        // Check if the enemy has fallen into the void
+        if (transform.position.y < -50)
+        {
+            Destroy(gameObject);
         }
     }
+
 
     private void PatrollingBehavior()
     {
@@ -99,14 +111,12 @@ public class Enemy : MonoBehaviour
             ChangeState(EnemyState.Chasing);
         }
     }
-
     private void ChooseNewPatrolDirection()
     {
         float randomAngle = Random.Range(0f, 360f);
         patrolDirection = Quaternion.Euler(0, randomAngle, 0) * Vector3.forward;
         patrolDirection.Normalize();
     }
-
     private void MoveInDirection(Vector3 direction)
     {
         rb.velocity = direction * 1.4f;
@@ -114,7 +124,6 @@ public class Enemy : MonoBehaviour
         transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, 7f);
         //transform.rotation = lookRotation;
     }
-
     private void ChasingBehavior()
     {
         MoveTowardsPlayer();
@@ -125,13 +134,31 @@ public class Enemy : MonoBehaviour
             ChangeState(EnemyState.Patrolling);
         }
     }
-
     private bool IsPlayerDetected()
     {
         // Simple distance-based detection for example
         return Vector3.Distance(transform.position, player.position) < 10f;
     }
+    private void Attack()
+    {
+        if (!IsPlayerDetected())
+        {
+            ChangeState(EnemyState.Chasing);
+        }
+        else if (distanceToPlayer < 1.5f)
+        {
+            // Logic to handle the attack
+            StartCoroutine(HandleAttack());
+        }
+    }
 
+    private System.Collections.IEnumerator HandleAttack()
+    {
+        currentState = EnemyState.Attacking;
+        // Wait for the duration of the attack animation
+        yield return new WaitForSeconds(1.5f); // Set this duration to the length of your attack animation
+        currentState = EnemyState.Patrolling;
+    }
     private void ChangeState(EnemyState newState)
     {
         currentState = newState;
@@ -146,8 +173,18 @@ public class Enemy : MonoBehaviour
             Quaternion lookRotation = Quaternion.LookRotation(new Vector3(direction.x, 0, direction.z));
             transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, timeCount * speed);
             timeCount = timeCount + Time.deltaTime;
-            //transform.rotation = lookRotation;
-            rb.velocity = direction * moveSpeed;
+
+            // Check distance to player
+            distanceToPlayer = Vector3.Distance(transform.position, player.position);
+            if (distanceToPlayer > 1.5f) // 1.5f is the minimum distance to keep from the player
+            {
+                rb.MovePosition(transform.position + direction * moveSpeed * Time.deltaTime);
+            }
+            else
+            {
+                ChangeState(EnemyState.Attacking);
+            }
+
             Debug.DrawLine(transform.position, transform.position + direction * 5, Color.red, 0.1f);
         }
     }
