@@ -276,11 +276,17 @@ MonoBehaviour:
     m_Bits: 1024
   patrolMoveTime: 3
   patrolCooldown: 2
-  isPatrolMoving: 0
-  Model: {fileID: 0}
   speed: 0.9
   distanceToPlayer: 0
-  currentState: 0
+  attackRange: 15
+  attackCooldown: 1
+  orientation: {fileID: 0}
+  animationControl: {fileID: 0}
+  lastAttackTime: 0
+  Rand_MoveRange: 6.37
+  Rand_Move_Speed: 8
+  _changeDirectionTimer: 0
+  _currentTimer: 0
 --- !u!114 &7462724426775609242
 MonoBehaviour:
   m_ObjectHideFlags: 0
