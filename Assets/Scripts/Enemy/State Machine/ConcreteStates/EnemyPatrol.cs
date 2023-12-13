@@ -29,12 +29,10 @@ public class EnemyPatrol : EnemyState
         _direction = (_targetPos - enemy.transform.position).normalized;
 
         // Rotate towards the target position using Quaternion.Lerp
-        Quaternion targetRotation = Quaternion.LookRotation(_direction);
-        
 
         enemy.MoveEnemy(_direction * enemy.Rand_Move_Speed);
 
-        enemy._currentTimer -= Time.deltaTime;
+        enemy._currentTimer -= Time.deltaTime * 0.3f;
         if (enemy._currentTimer <= 0 || (enemy.transform.position - _targetPos).sqrMagnitude < 0.01f)
         {
             _targetPos = GetRandomPoint();

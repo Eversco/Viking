@@ -6,6 +6,5 @@ public interface IMoveable
 {
     Rigidbody2D rb { get; set; }
     bool isFacingRight { get; set; }
-    void MoveEnemy(Vector2 velocity);
-    void CheckForLeftOrRightFacing(Vector2 velocity);
+    void MoveEnemy(Vector3 velocity);
 }

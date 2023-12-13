@@ -251,7 +251,7 @@ Rigidbody:
     m_Bits: 0
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
-  m_UseGravity: 1
+  m_UseGravity: 0
   m_IsKinematic: 0
   m_Interpolate: 1
   m_Constraints: 0
@@ -283,10 +283,10 @@ MonoBehaviour:
   orientation: {fileID: 0}
   animationControl: {fileID: 0}
   lastAttackTime: 0
-  Rand_MoveRange: 6.37
-  Rand_Move_Speed: 8
+  Rand_MoveRange: 4.21
+  Rand_Move_Speed: 0.94
   _changeDirectionTimer: 0
-  _currentTimer: 0
+  _currentTimer: 5.25
 --- !u!114 &7462724426775609242
 MonoBehaviour:
   m_ObjectHideFlags: 0

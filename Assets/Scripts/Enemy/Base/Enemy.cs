@@ -83,11 +83,6 @@ public class Enemy : MonoBehaviour, IDamageable, IMoveable
     {
         stateMachine.CurrentEnemyState.FrameUpdate();
 
-        
-
-        
-
-        // Check if the enemy has fallen into the void
         if (transform.position.y < -50)
         {
             Destroy(gameObject);
@@ -96,9 +91,10 @@ public class Enemy : MonoBehaviour, IDamageable, IMoveable
 
     private void FixedUpdate()
     {
-        stateMachine.CurrentEnemyState.PhysicsUpdate();
         GroundCheck();
         ApplyAdditionalGravity();
+        stateMachine.CurrentEnemyState.PhysicsUpdate();
+        
     }
 
     private void GroundCheck()
@@ -131,28 +127,10 @@ public class Enemy : MonoBehaviour, IDamageable, IMoveable
     }
     #endregion
     #region Movement
-    public void MoveEnemy(Vector2 velocity)
+    public void MoveEnemy(Vector3 velocity)
     {
         rb.velocity = velocity;
-        Quaternion targetRotation = Quaternion.LookRotation(velocity);
-        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 3);
-        //CheckForLeftOrRightFacing(velocity);
-
-    }
-    public void CheckForLeftOrRightFacing(Vector2 velocity)
-    {
-        if (isFacingRight && velocity.x < 0f)
-        {
-            Vector3 rotator = new Vector3(transform.rotation.x, 180f, transform.rotation.z);
-            transform.rotation = Quaternion.Euler(rotator);
-            isFacingRight = !isFacingRight;
-        }
-        else if (!isFacingRight && velocity.x > 0f)
-        {
-             Vector3 rotator = new Vector3(transform.rotation.x, 180f, transform.rotation.z);
-             transform.rotation = Quaternion.Euler(rotator);
-             isFacingRight = !isFacingRight;
-        }
+        
     }
 
     #endregion
