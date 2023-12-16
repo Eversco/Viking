@@ -12,12 +12,10 @@ public class Voxel : MonoBehaviour
     public int generationRadius = 100;
     public GameObject player;
     public GameObject[] groundTiles;
-    public GameObject[] connectiveTiles;
     public GameObject[] enemies;
     public Dictionary<Vector3, GameObject> spawnedTiles = new Dictionary<Vector3, GameObject>();
     public Dictionary<Vector3, GameObject> spawnedEnemies = new Dictionary<Vector3, GameObject>();
     private Dictionary<GameObject, Vector3> tileSizes = new Dictionary<GameObject, Vector3>();
-    HashSet<Tuple<Vector3, Vector3>> connections = new HashSet<Tuple<Vector3, Vector3>>();
 
 
     public GameObject initialIsland;
@@ -41,10 +39,6 @@ public class Voxel : MonoBehaviour
                 tileSizes[tile] = new Vector3(gridSize, 0, gridSize);
             }
         }
-        foreach (var tile in connectiveTiles)
-        {
-            SetLayerRecursively(tile.gameObject, 10);
-        }
         spawnedTiles.Add(initialIsland.transform.position, initialIsland);
 
 
@@ -57,7 +51,7 @@ public class Voxel : MonoBehaviour
         GenerateChunksAroundPlayer(playerPosition);
 
         RemoveDistantChunks(playerPosition);
-        
+
     }
 
     private void SetLayerRecursively(GameObject obj, int newLayer)
@@ -145,7 +139,7 @@ public class Voxel : MonoBehaviour
             }
         }
 
-        foreach(Vector3 tile in tilesRemove)
+        foreach (Vector3 tile in tilesRemove)
         {
             spawnedTiles.Remove(tile);
         }
